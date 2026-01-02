@@ -109,9 +109,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
         }
 
         AgentLookingForGroup.Detailed lfg = AgentLookingForGroup.Instance()->LastViewedListing;
-        //Log.Debug("AgentLookingForGroup Open");
         var _charList = new CharacterRow?[lfg.NumberOfParties * 8];
-        //Log.Debug($"AgentLookingForGroup NumberOfParties: {lfg.NumberOfParties}");
 
 
         for (int i = 0; i < lfg.NumberOfParties * 8; i++)
@@ -170,10 +168,6 @@ public unsafe sealed class Plugin : IDalamudPlugin
         }
 
         MainWindow.IsOpen = true;
-        //for (var i = 0; i < _charList.Length; i++)
-        //{
-        //    Log.Debug($"char {i} of _charList: {_charList[i].HasValue}");
-        //}
     }
 
     private uint GetJobIconId(uint JobId)

@@ -12,41 +12,45 @@ namespace SamplePlugin.Windows;
 public class MainWindow : Window, IDisposable
 {
     public CharacterRow?[]? characters;
+    public bool queueOpen = false;
     private readonly Plugin plugin;
     private static readonly Vector2 IconSize = new Vector2(33, 33);
 
     public MainWindow(Plugin plugin)
-        : base("##whodis", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove)
+        : base("##whodis",
+            ImGuiWindowFlags.NoTitleBar
+            | ImGuiWindowFlags.AlwaysAutoResize
+            | ImGuiWindowFlags.NoMove
+            | ImGuiWindowFlags.NoBringToFrontOnFocus
+            | ImGuiWindowFlags.NoDecoration
+            | ImGuiWindowFlags.NoSavedSettings
+            | ImGuiWindowFlags.NoNav, true)
     {
         this.Size = Vector2.Zero;
         this.RespectCloseHotkey = false;
         this.AllowClickthrough = true;
-        this.SizeCondition = ImGuiCond.Always;
 
         this.plugin = plugin;
     }
 
     public void Dispose() { }
 
+    public override bool DrawConditions()
+    {
+        var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
+
+        return characters != null && !characters.All(chr => !chr.HasValue) && lfgAddon != null && lfgAddon.IsVisible;
+    }
+
     public override void Draw()
     {
-        if (characters == null)
-        {
-            return;
-        }
-
-        if (characters.All(chr => !chr.HasValue))
-        {
-            IsOpen = false;
-            return;
-
-        }
+        //if (characters.All(chr => !chr.HasValue))
+        //{
+        //    IsOpen = false;
+        //    return;
+        //}
 
         var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
-        if (lfgAddon == null)
-        {
-            return;
-        }
 
         if (lfgAddon.Position != new Vector2(0, 0))
         {
@@ -85,6 +89,10 @@ public class MainWindow : Window, IDisposable
                         {
                             ImGui.Image(icon.Handle, IconSize);
                         }
+                        else
+                        {
+                            ImGui.Dummy(IconSize);
+                        }
 
                         using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
                         var iconTextSize = ImGui.CalcTextSize(FontAwesomeIcon.Ban.ToIconString());
@@ -107,6 +115,10 @@ public class MainWindow : Window, IDisposable
                     if (jobIcon != null)
                     {
                         ImGui.Image(jobIcon.Handle, IconSize);
+                    }
+                    else
+                    {
+                        ImGui.Dummy(IconSize);
                     }
 
                     var cursorStart = ImGui.GetItemRectMin();
@@ -138,6 +150,11 @@ public class MainWindow : Window, IDisposable
                     }
                 }
             }
+        }
+
+        if (queueOpen)
+        {
+            queueOpen = false;
         }
     }
 }

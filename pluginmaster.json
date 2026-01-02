@@ -1,0 +1,24 @@
+[
+    {
+        "Author": "kwassant",
+        "Name": "Marauder's Map",
+        "InternalName": "MarauderMap",
+        "Punchline": "I solemnly swear that I am up to no good.",
+        "Description": "Peek into party finders to know who's in there.",
+        "Changelog": "Fixed for 7.3 (Thanks to Zeffuro)",
+        "AssemblyVersion": "0.0.1",
+        "RepoUrl": "https://github.com/Sowce/whodis",
+        "ApplicableVersion": "any",
+        "CategoryTags": ["pf", "lookup", "whodis", "marauder", "map"],
+        "DalamudApiLevel": 14,
+        "IconUrl": "https://i.imgur.com/fA7I9um.png",
+        "ImageUrls": [""],
+        "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.1/latest.zip",
+        "IsHide": false,
+        "IsTestingExclusive": false,
+        "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.1/latest.zip",
+        "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.1/latest.zip",
+        "DownloadCount": 67,
+        "LastUpdate": 1767387447
+    }
+]

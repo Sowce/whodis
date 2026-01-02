@@ -5,7 +5,6 @@
         "InternalName": "MarauderMap",
         "Punchline": "I solemnly swear that I am up to no good.",
         "Description": "Peek into party finders to know who's in there.",
-        "Changelog": "Fixed for 7.3 (Thanks to Zeffuro)",
         "AssemblyVersion": "0.0.1",
         "RepoUrl": "https://github.com/Sowce/whodis",
         "ApplicableVersion": "any",

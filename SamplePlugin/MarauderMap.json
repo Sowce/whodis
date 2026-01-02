@@ -1,0 +1,11 @@
+{
+  "Author": "kwassant",
+  "Name": "Marauder's Map",
+  "InternalName": "MarauderMap",
+  "Punchline": "I solemnly swear that I am up to no good.",
+  "Description": "Peek into party finders to know who's in there.",
+  "ApplicableVersion": "any",
+  "Tags": ["marauder", "map", "pf", "party", "finder", "name", "who"],
+  "IconUrl": "https://i.imgur.com/fA7I9um.png",
+  "DalamudApiLevel": 14
+}

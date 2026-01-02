@@ -1,31 +1,28 @@
-﻿using System;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
-using Lumina.Excel.Sheets;
+using System;
+using System.Linq;
+using System.Numerics;
 
 namespace SamplePlugin.Windows;
 
 public class MainWindow : Window, IDisposable
 {
-    private readonly string goatImagePath;
+    public CharacterRow?[]? characters;
     private readonly Plugin plugin;
+    private static readonly Vector2 IconSize = new Vector2(33, 33);
 
-    // We give this window a hidden ID using ##.
-    // The user will see "My Amazing Window" as window title,
-    // but for ImGui the ID is "My Amazing Window##With a hidden ID"
-    public MainWindow(Plugin plugin, string goatImagePath)
-        : base("My Amazing Window##With a hidden ID", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse)
+    public MainWindow(Plugin plugin)
+        : base("##whodis", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove)
     {
-        SizeConstraints = new WindowSizeConstraints
-        {
-            MinimumSize = new Vector2(375, 330),
-            MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
-        };
+        this.Size = Vector2.Zero;
+        this.RespectCloseHotkey = false;
+        this.AllowClickthrough = true;
+        this.SizeCondition = ImGuiCond.Always;
 
-        this.goatImagePath = goatImagePath;
         this.plugin = plugin;
     }
 
@@ -33,67 +30,112 @@ public class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-        ImGui.TextUnformatted($"The random config bool is {plugin.Configuration.SomePropertyToBeSavedAndWithADefault}");
-
-        if (ImGui.Button("Show Settings"))
+        if (characters == null)
         {
-            plugin.ToggleConfigUi();
+            return;
         }
 
-        ImGui.Spacing();
-
-        // Normally a BeginChild() would have to be followed by an unconditional EndChild(),
-        // ImRaii takes care of this after the scope ends.
-        // This works for all ImGui functions that require specific handling, examples are BeginTable() or Indent().
-        using (var child = ImRaii.Child("SomeChildWithAScrollbar", Vector2.Zero, true))
+        if (characters.All(chr => !chr.HasValue))
         {
-            // Check if this child is drawing
-            if (child.Success)
+            IsOpen = false;
+            return;
+
+        }
+
+        var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
+        if (lfgAddon == null)
+        {
+            return;
+        }
+
+        if (lfgAddon.Position != new Vector2(0, 0))
+        {
+            if (lfgAddon.X + lfgAddon.ScaledWidth + ImGui.GetWindowWidth() > ImGuiHelpers.MainViewport.Size.X)
             {
-                ImGui.TextUnformatted("Have a goat:");
-                var goatImage = Plugin.TextureProvider.GetFromFile(goatImagePath).GetWrapOrDefault();
-                if (goatImage != null)
+                this.Position = new Vector2(lfgAddon.X - ImGui.GetWindowWidth(), lfgAddon.Y + (lfgAddon.ScaledHeight - ImGui.GetWindowHeight()) / 2 - 4);
+            }
+            else
+            {
+                this.Position = new Vector2(lfgAddon.X + lfgAddon.ScaledWidth, lfgAddon.Y + (lfgAddon.ScaledHeight - ImGui.GetWindowHeight()) / 2 - 4);
+            }
+        }
+
+        using (var table = ImRaii.Table("oomf", characters.Length / 4))
+        {
+            for (var i = 0; i < characters.Length / 8; i++)
+            {
+                ImGui.TableSetupColumn("" + i * 2, ImGuiTableColumnFlags.WidthFixed);
+                ImGui.TableSetupColumn("" + i * 2 + 1, ImGuiTableColumnFlags.WidthStretch);
+            }
+
+            for (var rowIdx = 0; rowIdx < 8; rowIdx++)
+            {
+                ImGui.TableNextRow();
+
+                for (var columIdx = 0; columIdx < characters.Length / 8; columIdx++)
                 {
-                    using (ImRaii.PushIndent(55f))
+                    var _character = characters[columIdx * 8 + rowIdx];
+                    ImGui.TableSetColumnIndex(columIdx * 2);
+
+                    if (_character == null)
                     {
-                        ImGui.Image(goatImage.Handle, goatImage.Size);
+
+                        var icon = Plugin.TextureProvider.GetFromGameIcon(62574).GetWrapOrDefault();
+                        if (icon != null)
+                        {
+                            ImGui.Image(icon.Handle, IconSize);
+                        }
+
+                        using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
+                        var iconTextSize = ImGui.CalcTextSize(FontAwesomeIcon.Ban.ToIconString());
+
+                        ImGui.SameLine((float)Math.Floor(IconSize.X / 2));
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (IconSize.Y - iconTextSize.Y) / 2);
+
+                        ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFF);
+                        ImGui.Text(FontAwesomeIcon.Ban.ToIconString());
+                        ImGui.PopStyleColor();
+
+                        iconFont?.Dispose();
+
+                        continue;
                     }
-                }
-                else
-                {
-                    ImGui.TextUnformatted("Image not found.");
-                }
 
-                ImGuiHelpers.ScaledDummy(20.0f);
+                    var character = _character.Value;
+                    var jobIcon = Plugin.TextureProvider.GetFromGameIcon(character.JobIcon).GetWrapOrDefault();
 
-                // Example for other services that Dalamud provides.
-                // ClientState provides a wrapper filled with information about the local player object and client.
+                    if (jobIcon != null)
+                    {
+                        ImGui.Image(jobIcon.Handle, IconSize);
+                    }
 
-                var localPlayer = Plugin.ClientState.LocalPlayer;
-                if (localPlayer == null)
-                {
-                    ImGui.TextUnformatted("Our local player is currently not loaded.");
-                    return;
-                }
+                    var cursorStart = ImGui.GetItemRectMin();
+                    var tooltipHitboxHeight = ImGui.GetItemRectMax().Y;
 
-                if (!localPlayer.ClassJob.IsValid)
-                {
-                    ImGui.TextUnformatted("Our current job is currently not valid.");
-                    return;
-                }
+                    ImGui.TableSetColumnIndex(columIdx * 2 + 1);
 
-                // If you want to see the Macro representation of this SeString use `ToMacroString()`
-                ImGui.TextUnformatted($"Our current job is ({localPlayer.ClassJob.RowId}) \"{localPlayer.ClassJob.Value.Abbreviation}\"");
+                    if (character.Name != null)
+                    {
+                        var nameText = $"{character.Name}{(character.oldNames != null ? "*" : "")} "; // trailing space is on purpose, easier than padding :3
 
-                // Example for quarrying Lumina directly, getting the name of our current area.
-                var territoryId = Plugin.ClientState.TerritoryType;
-                if (Plugin.DataManager.GetExcelSheet<TerritoryType>().TryGetRow(territoryId, out var territoryRow))
-                {
-                    ImGui.TextUnformatted($"We are currently in ({territoryId}) \"{territoryRow.PlaceName.Value.Name}\"");
-                }
-                else
-                {
-                    ImGui.TextUnformatted("Invalid territory.");
+                        ImGuiHelpers.GetButtonSize(nameText);
+
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize(nameText).Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2);
+
+                        ImGui.PushStyleColor(ImGuiCol.Text, character.Name == "Empty" ? 0x80FFFFFF : 0xFFFFFFFF);
+                        ImGui.Text(nameText);
+                        ImGui.PopStyleColor();
+
+                        if (character.oldNames != null && ImGui.IsMouseHoveringRect(cursorStart, new Vector2(ImGui.GetItemRectMax().X, tooltipHitboxHeight), false))
+                        {
+                            ImGui.SetTooltip(String.Join("\n", character.oldNames));
+                        }
+                    }
+                    else
+                    {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize("???").Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2);
+                        ImGui.TextUnformatted("???");
+                    }
                 }
             }
         }

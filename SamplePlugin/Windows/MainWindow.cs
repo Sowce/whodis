@@ -13,6 +13,7 @@ public class MainWindow : Window, IDisposable
 {
     public CharacterRow?[]? characters;
     public bool queueOpen = false;
+    public string? DutyName = null;
     private readonly Plugin plugin;
     private static readonly Vector2 IconSize = new Vector2(33, 33);
 
@@ -42,15 +43,21 @@ public class MainWindow : Window, IDisposable
         return characters != null && !characters.All(chr => !chr.HasValue) && lfgAddon != null && lfgAddon.IsVisible;
     }
 
-    public override void Draw()
+    public override void OnClose()
     {
-        //if (characters.All(chr => !chr.HasValue))
-        //{
-        //    IsOpen = false;
-        //    return;
-        //}
+        DutyName = null;
+        base.OnClose();
+    }
 
+    public unsafe override void Draw()
+    {
         var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
+
+        if (DutyName != null)
+        {
+            ImGui.Text(DutyName);
+            ImGui.Separator();
+        }
 
         if (lfgAddon.Position != new Vector2(0, 0))
         {
@@ -64,7 +71,7 @@ public class MainWindow : Window, IDisposable
             }
         }
 
-        using (var table = ImRaii.Table("oomf", characters.Length / 4))
+        using (var table = ImRaii.Table("oomf", characters!.Length / 4))
         {
             for (var i = 0; i < characters.Length / 8; i++)
             {

@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ClassJob = Lumina.Excel.Sheets.ClassJob;
 
 namespace SamplePlugin;
 
@@ -38,6 +39,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
 
     private static List<ClassJob> JobSheet;
+    private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties;
 
     private static SqliteConnection SQLiteConnection;
 
@@ -65,6 +67,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
             throw new FileNotFoundException("Cannot find data source.");
 
         JobSheet = DataSheets.GetExcelSheet<ClassJob>().ToList();
+        duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
 
         SQLiteConnection.Open();
 
@@ -99,6 +102,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
         if (lfgDetail != null && lfgDetail->IsVisible)
             return;
         MainWindow.IsOpen = false;
+        MainWindow.DutyName = null;
     }
 
     private void OnLookingForGroup(AddonEvent type, AddonArgs args)
@@ -110,6 +114,13 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         AgentLookingForGroup.Detailed lfg = AgentLookingForGroup.Instance()->LastViewedListing;
         var _charList = new CharacterRow?[lfg.NumberOfParties * 8];
+
+        var dutyText = ((AddonLookingForGroupDetail*)GameGui.GetAddonByName("LookingForGroupDetail").Address)->DutyNameTextNode->GetText().ToString();
+
+        if (dutyText == "Locked Duty")
+        {
+            MainWindow.DutyName = duties.GetRow(lfg.DutyId).Name.ToString(); // find duty.
+        }
 
 
         for (int i = 0; i < lfg.NumberOfParties * 8; i++)

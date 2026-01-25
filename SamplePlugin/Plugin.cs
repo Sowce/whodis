@@ -117,7 +117,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         var dutyText = ((AddonLookingForGroupDetail*)GameGui.GetAddonByName("LookingForGroupDetail").Address)->DutyNameTextNode->GetText().ToString();
 
-        if (dutyText == "Locked Duty")
+        if (dutyText == "Locked Duty" || dutyText == "Missions non disponibles")
         {
             MainWindow.DutyName = duties.GetRow(lfg.DutyId).Name.ToString(); // find duty.
         }

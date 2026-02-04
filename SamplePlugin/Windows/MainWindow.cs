@@ -1,5 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -16,6 +17,9 @@ public class MainWindow : Window, IDisposable
     public string? DutyName = null;
     private readonly Plugin plugin;
     private static readonly Vector2 IconSize = new Vector2(33, 33);
+    private ISharedImmediateTexture? lfgNone;
+    private Vector2? lfgNoneUv0;
+    private Vector2? lfgNoneUv1;
 
     public MainWindow(Plugin plugin)
         : base("##whodis",
@@ -34,14 +38,14 @@ public class MainWindow : Window, IDisposable
         this.plugin = plugin;
     }
 
-    public void Dispose() { }
-
     public override bool DrawConditions()
     {
         var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
 
         return characters != null && !characters.All(chr => !chr.HasValue) && lfgAddon != null && lfgAddon.IsVisible;
     }
+
+    public void Dispose() { }
 
     public override void OnClose()
     {
@@ -90,7 +94,7 @@ public class MainWindow : Window, IDisposable
 
                     if (_character == null)
                     {
-
+                        var startingPos = ImGui.GetCursorPos();
                         var icon = Plugin.TextureProvider.GetFromGameIcon(62574).GetWrapOrDefault();
                         if (icon != null)
                         {
@@ -101,17 +105,42 @@ public class MainWindow : Window, IDisposable
                             ImGui.Dummy(IconSize);
                         }
 
-                        using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
-                        var iconTextSize = ImGui.CalcTextSize(FontAwesomeIcon.Ban.ToIconString());
+                        ImGui.SetCursorPos(startingPos);
 
-                        ImGui.SameLine((float)Math.Floor(IconSize.X / 2));
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (IconSize.Y - iconTextSize.Y) / 2);
+                        lfgNone ??= Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
+                        if (lfgNone.TryGetWrap(out var lfgTex, out var _))
+                        {
+                            if (!lfgNoneUv0.HasValue || !lfgNoneUv1.HasValue)
+                            {
+                                lfgNoneUv0 = new Vector2(0f / lfgTex.Width, 272f / lfgTex.Height);
+                                lfgNoneUv1 = new Vector2(56f / lfgTex.Width, 328f / lfgTex.Height);
+                            }
 
-                        ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFF);
-                        ImGui.Text(FontAwesomeIcon.Ban.ToIconString());
-                        ImGui.PopStyleColor();
+                            ImGui.SetCursorPos(ImGui.GetCursorPos() + IconSize * 0.05f);
 
-                        iconFont?.Dispose();
+                            ImGui.Image(
+                                lfgTex.Handle,
+                                IconSize * 0.90f,
+                                lfgNoneUv0.Value,
+                                lfgNoneUv1.Value
+                            );
+
+                            ImGui.SetCursorPos(ImGui.GetCursorPos() - IconSize * 0.05f);
+                        }
+                        else
+                        {
+                            using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
+                            var iconTextSize = ImGui.CalcTextSize(FontAwesomeIcon.Ban.ToIconString());
+
+                            ImGui.SameLine((float)Math.Floor(IconSize.X / 2));
+                            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (IconSize.Y - iconTextSize.Y) / 2);
+
+                            ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFF);
+                            ImGui.Text(FontAwesomeIcon.Ban.ToIconString());
+                            ImGui.PopStyleColor();
+
+                            iconFont?.Dispose();
+                        }
 
                         continue;
                     }

@@ -4,6 +4,7 @@ namespace SamplePlugin
 {
     public struct CharacterRow
     {
+        public ulong Id;
         public string? Name;
         public List<string>? oldNames;
         public uint JobIcon;

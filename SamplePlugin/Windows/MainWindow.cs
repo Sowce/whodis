@@ -20,8 +20,9 @@ public class MainWindow : Window, IDisposable
     private ISharedImmediateTexture? lfgNone;
     private Vector2? lfgNoneUv0;
     private Vector2? lfgNoneUv1;
+    private readonly ISharedImmediateTexture tomestoneLogo;
 
-    public MainWindow(Plugin plugin)
+    public MainWindow(Plugin plugin, string tomestoneLogoPath)
         : base("##whodis",
             ImGuiWindowFlags.NoTitleBar
             | ImGuiWindowFlags.AlwaysAutoResize
@@ -34,6 +35,8 @@ public class MainWindow : Window, IDisposable
         this.Size = Vector2.Zero;
         this.RespectCloseHotkey = false;
         this.AllowClickthrough = true;
+
+        this.tomestoneLogo = Plugin.TextureProvider.GetFromFile(tomestoneLogoPath);
 
         this.plugin = plugin;
     }
@@ -89,12 +92,12 @@ public class MainWindow : Window, IDisposable
 
                 for (var columIdx = 0; columIdx < characters.Length / 8; columIdx++)
                 {
+                    var cursorStart = ImGui.GetCursorScreenPos();
                     var _character = characters[columIdx * 8 + rowIdx];
                     ImGui.TableSetColumnIndex(columIdx * 2);
 
                     if (_character == null)
                     {
-                        var startingPos = ImGui.GetCursorPos();
                         var icon = Plugin.TextureProvider.GetFromGameIcon(62574).GetWrapOrDefault();
                         if (icon != null)
                         {
@@ -105,7 +108,7 @@ public class MainWindow : Window, IDisposable
                             ImGui.Dummy(IconSize);
                         }
 
-                        ImGui.SetCursorPos(startingPos);
+                        ImGui.SetCursorPos(cursorStart);
 
                         lfgNone ??= Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
                         if (lfgNone.TryGetWrap(out var lfgTex, out var _))
@@ -157,7 +160,6 @@ public class MainWindow : Window, IDisposable
                         ImGui.Dummy(IconSize);
                     }
 
-                    var cursorStart = ImGui.GetItemRectMin();
                     var tooltipHitboxHeight = ImGui.GetItemRectMax().Y;
 
                     ImGui.TableSetColumnIndex(columIdx * 2 + 1);
@@ -174,9 +176,17 @@ public class MainWindow : Window, IDisposable
                         ImGui.Text(nameText);
                         ImGui.PopStyleColor();
 
-                        if (character.oldNames != null && ImGui.IsMouseHoveringRect(cursorStart, new Vector2(ImGui.GetItemRectMax().X, tooltipHitboxHeight), false))
+                        if (ImGui.IsMouseHoveringRect(cursorStart, new Vector2(ImGui.GetItemRectMax().X, tooltipHitboxHeight), false))
                         {
-                            ImGui.SetTooltip(String.Join("\n", character.oldNames));
+                            if (character.oldNames != null)
+                            {
+                                ImGui.SetTooltip(String.Join("\n", character.oldNames));
+                            }
+
+                            if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                            {
+                                ImGui.SetClipboardText(character.Name);
+                            }
                         }
                     }
                     else

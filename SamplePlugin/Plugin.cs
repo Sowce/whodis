@@ -73,7 +73,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        MainWindow = new MainWindow(this);
+        MainWindow = new MainWindow(this, Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "images", "tomestone.png"));
 
         WindowSystem.AddWindow(MainWindow);
 
@@ -163,6 +163,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
             _charList[i] = new CharacterRow()
             {
+                Id = lfg.MemberContentIds[i],
                 JobIcon = GetJobIconId(lfg.Jobs[i]),
                 Name = cachedName?.Name ?? "???",
                 oldNames = cachedName?.OldNames,

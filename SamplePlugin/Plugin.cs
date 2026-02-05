@@ -119,7 +119,8 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         if (dutyText == "Locked Duty" || dutyText == "Missions non disponibles")
         {
-            MainWindow.DutyName = duties.GetRow(lfg.DutyId).Name.ToString(); // find duty.
+            var dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
+            MainWindow.DutyName = char.ToUpper(dutyName[0]) + dutyName.Substring(1);
         }
 
 

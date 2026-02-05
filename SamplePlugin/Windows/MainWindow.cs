@@ -92,7 +92,7 @@ public class MainWindow : Window, IDisposable
                 {
                     var _character = characters[columIdx * 8 + rowIdx];
                     ImGui.TableSetColumnIndex(columIdx * 2);
-                    var cursorStart = ImGui.GetCursorPos();
+                    var cursorStart = ImGui.GetCursorScreenPos();
 
                     if (_character == null)
                     {
@@ -110,7 +110,7 @@ public class MainWindow : Window, IDisposable
                         var lfgNone = Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
                         if (lfgNone.TryGetWrap(out var lfgTex, out var _))
                         {
-                            ImGui.SetCursorPos(cursorStart);
+                            ImGui.SetCursorScreenPos(cursorStart);
                             if (!lfgNoneUv0.HasValue || !lfgNoneUv1.HasValue)
                             {
                                 lfgNoneUv0 = new Vector2(0f / lfgTex.Width, 272f / lfgTex.Height);
@@ -148,6 +148,7 @@ public class MainWindow : Window, IDisposable
 
                     ImGui.TableSetColumnIndex(columIdx * 2 + 1);
 
+
                     if (character.Name != null)
                     {
                         var nameText = $"{character.Name}{(character.oldNames != null ? "*" : "")} "; // trailing space is on purpose, easier than padding :3
@@ -167,7 +168,7 @@ public class MainWindow : Window, IDisposable
                                 ImGui.SetTooltip(String.Join("\n", character.oldNames));
                             }
 
-                            if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                            if (character.Name != "Empty" && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                             {
                                 ImGui.SetClipboardText(character.Name);
                             }

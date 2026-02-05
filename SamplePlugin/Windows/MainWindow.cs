@@ -1,5 +1,4 @@
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -17,7 +16,7 @@ public class MainWindow : Window, IDisposable
     public string? DutyName = null;
     private readonly Plugin plugin;
     private static readonly Vector2 IconSize = new Vector2(33, 33);
-    private ISharedImmediateTexture? lfgNone;
+    //private ISharedImmediateTexture? lfgNone;
     private Vector2? lfgNoneUv0;
     private Vector2? lfgNoneUv1;
     private readonly ISharedImmediateTexture tomestoneLogo;
@@ -92,9 +91,9 @@ public class MainWindow : Window, IDisposable
 
                 for (var columIdx = 0; columIdx < characters.Length / 8; columIdx++)
                 {
-                    var cursorStart = ImGui.GetCursorScreenPos();
                     var _character = characters[columIdx * 8 + rowIdx];
                     ImGui.TableSetColumnIndex(columIdx * 2);
+                    var cursorStart = ImGui.GetCursorPos();
 
                     if (_character == null)
                     {
@@ -108,11 +107,11 @@ public class MainWindow : Window, IDisposable
                             ImGui.Dummy(IconSize);
                         }
 
-                        ImGui.SetCursorPos(cursorStart);
 
-                        lfgNone ??= Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
+                        var lfgNone = Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
                         if (lfgNone.TryGetWrap(out var lfgTex, out var _))
                         {
+                            ImGui.SetCursorPos(cursorStart);
                             if (!lfgNoneUv0.HasValue || !lfgNoneUv1.HasValue)
                             {
                                 lfgNoneUv0 = new Vector2(0f / lfgTex.Width, 272f / lfgTex.Height);
@@ -129,20 +128,6 @@ public class MainWindow : Window, IDisposable
                             );
 
                             ImGui.SetCursorPos(ImGui.GetCursorPos() - IconSize * 0.05f);
-                        }
-                        else
-                        {
-                            using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
-                            var iconTextSize = ImGui.CalcTextSize(FontAwesomeIcon.Ban.ToIconString());
-
-                            ImGui.SameLine((float)Math.Floor(IconSize.X / 2));
-                            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (IconSize.Y - iconTextSize.Y) / 2);
-
-                            ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFF);
-                            ImGui.Text(FontAwesomeIcon.Ban.ToIconString());
-                            ImGui.PopStyleColor();
-
-                            iconFont?.Dispose();
                         }
 
                         continue;

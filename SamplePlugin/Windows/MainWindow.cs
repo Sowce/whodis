@@ -12,7 +12,6 @@ namespace SamplePlugin.Windows;
 public class MainWindow : Window, IDisposable
 {
     public CharacterRow?[]? characters;
-    public bool queueOpen = false;
     public string? DutyName = null;
     private readonly Plugin plugin;
     private static readonly Vector2 IconSize = new Vector2(33, 33);
@@ -181,11 +180,6 @@ public class MainWindow : Window, IDisposable
                     }
                 }
             }
-        }
-
-        if (queueOpen)
-        {
-            queueOpen = false;
         }
     }
 }

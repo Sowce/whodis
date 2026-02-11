@@ -43,6 +43,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     private static List<ClassJob> jobs;
     private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
     private Lumina.Excel.ExcelSheet<DeepDungeon> deepDungeons = DataSheets.GetExcelSheet<DeepDungeon>();
+    private Lumina.Excel.ExcelSheet<ContentRoulette> roulettes = DataSheets.GetExcelSheet<ContentRoulette>();
     private string dutyLockedString = "";
     private static SqliteConnection SQLiteConnection;
 
@@ -124,17 +125,21 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         var dutyText = ((AddonLookingForGroupDetail*)GameGui.GetAddonByName("LookingForGroupDetail").Address)->DutyNameTextNode->GetText().ToString();
 
-        if (dutyText == dutyLockedString)
+        if (dutyText.EndsWith(dutyLockedString)) // EndsWith so we don't get bothered by the sprout/noob welcome icon
         {
             var dutyName = "";
 
-            if (lfg.Category == 8192)
+            if (lfg.Category == 8192) // Deep Dungeons
             {
                 dutyName = deepDungeons.GetRow((uint)lfg.DutyId - 28).Name.ToString();
             }
+            else if (lfg.Category == 2) // Roulettes
+            {
+                dutyName = roulettes.GetRow(lfg.DutyId).Name.ToString();
+            }
             else
             {
-                dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
+                dutyName = lfg.Category + " " + lfg.DutyId + " " + duties.GetRow(lfg.DutyId).Name.ToString();
             }
 
             MainWindow.DutyName = char.ToUpper(dutyName[0]) + dutyName.Substring(1);

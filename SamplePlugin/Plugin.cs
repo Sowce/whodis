@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Lumina.Excel.Sheets;
 using Microsoft.Data.Sqlite;
 using SamplePlugin.Windows;
@@ -14,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static FFXIVClientStructs.FFXIV.Client.UI.Info.InfoProxyBlacklist;
 using ClassJob = Lumina.Excel.Sheets.ClassJob;
 
 namespace SamplePlugin;
@@ -38,9 +40,10 @@ public unsafe sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDataManager DataSheets { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
 
-    private static List<ClassJob> JobSheet;
-    private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties;
-
+    private static List<ClassJob> jobs;
+    private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
+    private Lumina.Excel.ExcelSheet<DeepDungeon> deepDungeons = DataSheets.GetExcelSheet<DeepDungeon>();
+    private string dutyLockedString = "";
     private static SqliteConnection SQLiteConnection;
 
     public Configuration Configuration { get; init; }
@@ -66,8 +69,12 @@ public unsafe sealed class Plugin : IDalamudPlugin
         if (SQLiteConnection == null)
             throw new FileNotFoundException("Cannot find data source.");
 
-        JobSheet = DataSheets.GetExcelSheet<ClassJob>().ToList();
-        duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
+        jobs = DataSheets.GetExcelSheet<ClassJob>().ToList();
+
+        var dutyLockedRow = DataSheets.GetExcelSheet<Addon>().GetRowOrDefault(11090); // Locked Duty string row, cba translating it :33
+
+        if (dutyLockedRow != null)
+            dutyLockedString = dutyLockedRow.Value.Text.ExtractText();
 
         SQLiteConnection.Open();
 
@@ -117,9 +124,19 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         var dutyText = ((AddonLookingForGroupDetail*)GameGui.GetAddonByName("LookingForGroupDetail").Address)->DutyNameTextNode->GetText().ToString();
 
-        if (dutyText == "Locked Duty" || dutyText == "Missions non disponibles")
+        if (dutyText == dutyLockedString)
         {
-            var dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
+            var dutyName = "";
+
+            if (lfg.Category == 8192)
+            {
+                dutyName = deepDungeons.GetRow((uint)lfg.DutyId - 28).Name.ToString();
+            }
+            else
+            {
+                dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
+            }
+
             MainWindow.DutyName = char.ToUpper(dutyName[0]) + dutyName.Substring(1);
         }
 
@@ -169,6 +186,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
                 Name = cachedName?.Name ?? "???",
                 oldNames = cachedName?.OldNames,
                 Party = (byte)Math.Floor((decimal)i / 8),
+                Blocked = isCharacterBlacklisted(lfg.MemberContentIds[i]),
             };
         }
 
@@ -181,6 +199,19 @@ public unsafe sealed class Plugin : IDalamudPlugin
         }
 
         MainWindow.IsOpen = true;
+    }
+
+    private bool isCharacterBlacklisted(ulong contentId)
+    {
+        var blInstance = *InfoProxyBlacklist.Instance();
+
+        for (var i = 0; i < blInstance.BlockedCharactersCount; i++)
+        {
+            if (blInstance.BlockedCharacters[i].Flag == (byte)BlockResultType.BlockedByContentId && blInstance.BlockedCharacters[i].Id == contentId)
+                return true;
+        }
+
+        return false;
     }
 
     private uint GetJobIconId(uint JobId)
@@ -230,14 +261,14 @@ public unsafe sealed class Plugin : IDalamudPlugin
             var name = reader.GetString(0);
             if (returnValue != name
                 && !names.Contains(name)
-                && !JobSheet.Any(job => job.Name.ToString().ToLower() == name.ToLower())
+                && !jobs.Any(job => job.Name.ToString().ToLower() == name.ToLower())
                 )
                 names.Add(name);
         }
 
         reader.Close();
 
-        if (names.Count > 0 && JobSheet.Any(job => job.Name.ToString().ToLower() == returnValue.ToLower()))
+        if (names.Count > 0 && jobs.Any(job => job.Name.ToString().ToLower() == returnValue.ToLower()))
         {
             returnValue = names[0];
             names.RemoveAt(0);

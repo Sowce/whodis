@@ -157,7 +157,20 @@ public class MainWindow : Window, IDisposable
 
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize(nameText).Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2);
 
-                        ImGui.PushStyleColor(ImGuiCol.Text, character.Name == "Empty" ? 0x80FFFFFF : 0xFFFFFFFF);
+                        var textColor = 0xFFFFFFFF;
+
+                        if (character.Name == "Empty")
+                        {
+                            textColor = 0x80FFFFFF;
+                        }
+                        else if (character.Blocked)
+                        {
+                            textColor = 0xFF0000FF;
+                            ImGui.Text("BLOCKED");
+
+                        }
+
+                        ImGui.PushStyleColor(ImGuiCol.Text, textColor);
                         ImGui.Text(nameText);
                         ImGui.PopStyleColor();
 

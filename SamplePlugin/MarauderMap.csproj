@@ -2,7 +2,7 @@
 <Project Sdk="Dalamud.NET.Sdk/14.0.0">
   <PropertyGroup>
       <TargetFramework>net10.0-windows7.0</TargetFramework>
-    <Version>0.0.7</Version>
+    <Version>0.0.10</Version>
     <Description>A sample plugin.</Description>
     <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>

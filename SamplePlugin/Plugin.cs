@@ -139,7 +139,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
             }
             else
             {
-                dutyName = lfg.Category + " " + lfg.DutyId + " " + duties.GetRow(lfg.DutyId).Name.ToString();
+                dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
             }
 
             MainWindow.DutyName = char.ToUpper(dutyName[0]) + dutyName.Substring(1);

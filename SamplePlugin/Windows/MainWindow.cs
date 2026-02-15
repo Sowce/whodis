@@ -163,11 +163,13 @@ public class MainWindow : Window, IDisposable
                         {
                             textColor = 0x80FFFFFF;
                         }
-                        else if (character.Blocked)
+                        else if (character.Blocked == BlockStatus.Blocked)
                         {
                             textColor = 0xFF0000FF;
-                            ImGui.Text("BLOCKED");
-
+                        }
+                        else if (character.Blocked == BlockStatus.MaybeBlocked)
+                        {
+                            textColor = 0xFF00A5FF;
                         }
 
                         ImGui.PushStyleColor(ImGuiCol.Text, textColor);

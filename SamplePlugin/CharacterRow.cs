@@ -2,10 +2,17 @@ using System.Collections.Generic;
 
 namespace SamplePlugin
 {
+    public enum BlockStatus
+    {
+        NotBlocked,
+        MaybeBlocked,
+        Blocked
+    }
+
     public struct CharacterRow
     {
         public byte Party;
-        public bool Blocked;
+        public BlockStatus Blocked;
         public uint JobIcon;
         public ulong Id;
         public string? Name;

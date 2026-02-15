@@ -4,6 +4,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
@@ -45,7 +46,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     private Lumina.Excel.ExcelSheet<DeepDungeon> deepDungeons = DataSheets.GetExcelSheet<DeepDungeon>();
     private Lumina.Excel.ExcelSheet<ContentRoulette> roulettes = DataSheets.GetExcelSheet<ContentRoulette>();
     private string dutyLockedString = "";
-    private static SqliteConnection SQLiteConnection;
+    private static SqliteConnection dbConnection;
 
     public Configuration Configuration { get; init; }
 
@@ -65,9 +66,9 @@ public unsafe sealed class Plugin : IDalamudPlugin
         if (!File.Exists(dataDbPath))
             throw new FileNotFoundException("Cannot find data source.");
 
-        SQLiteConnection = new SqliteConnection($"Data Source={Path.GetFullPath(dataDbPath)}");
+        dbConnection = new SqliteConnection($"Data Source={Path.GetFullPath(dataDbPath)};Mode=ReadOnly;Cache=Shared;");
 
-        if (SQLiteConnection == null)
+        if (dbConnection == null)
             throw new FileNotFoundException("Cannot find data source.");
 
         jobs = DataSheets.GetExcelSheet<ClassJob>().ToList();
@@ -77,7 +78,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
         if (dutyLockedRow != null)
             dutyLockedString = dutyLockedRow.Value.Text.ExtractText();
 
-        SQLiteConnection.Open();
+        dbConnection.Open();
 
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
@@ -92,7 +93,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
-        SQLiteConnection.Close();
+        dbConnection.Close();
 
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
 
@@ -191,7 +192,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
                 Name = cachedName?.Name ?? "???",
                 oldNames = cachedName?.OldNames,
                 Party = (byte)Math.Floor((decimal)i / 8),
-                Blocked = isCharacterBlacklisted(lfg.MemberContentIds[i]),
+                Blocked = isCharacterBlacklisted(lfg.MemberContentIds[i], cachedName?.Name ?? "???"),
             };
         }
 
@@ -206,17 +207,40 @@ public unsafe sealed class Plugin : IDalamudPlugin
         MainWindow.IsOpen = true;
     }
 
-    private bool isCharacterBlacklisted(ulong contentId)
+    private BlockStatus isCharacterBlacklisted(ulong contentId, string name)
     {
         var blInstance = *InfoProxyBlacklist.Instance();
+        var maybeBlocked = false;
 
         for (var i = 0; i < blInstance.BlockedCharactersCount; i++)
         {
             if (blInstance.BlockedCharacters[i].Flag == (byte)BlockResultType.BlockedByContentId && blInstance.BlockedCharacters[i].Id == contentId)
-                return true;
+                return BlockStatus.Blocked;
+
+            if (blInstance.BlockedCharacters[i].Name.ExtractText() == name)
+                maybeBlocked = true;
         }
 
-        return false;
+        using var checkCmd = dbConnection.CreateCommand();
+        checkCmd.CommandText = @"
+            SELECT 1
+            FROM social_list_members slm
+            JOIN social_lists sl ON sl.id = slm.social_list_id
+            WHERE sl.list_type = 2
+              AND slm.content_id = $pid
+            LIMIT 1;
+        "; // list_type = 2 -> blacklist
+
+        checkCmd.Parameters.AddWithValue("$pid", contentId);
+
+        var result = checkCmd.ExecuteScalar();
+
+        if (result != null)
+            return BlockStatus.Blocked;
+        if (maybeBlocked)
+            return BlockStatus.MaybeBlocked;
+
+        return BlockStatus.NotBlocked;
     }
 
     private uint GetJobIconId(uint JobId)
@@ -236,7 +260,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
             return new NamePullResult() { Name = PlayerState.CharacterName, OldNames = null };
         }
 
-        using var command = SQLiteConnection.CreateCommand();
+        using var command = dbConnection.CreateCommand();
         command.CommandText = "SELECT id,name FROM players WHERE content_id=@cid";
         command.Parameters.AddWithValue("@cid", contentId);
 

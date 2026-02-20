@@ -4,12 +4,8 @@
   "InternalName": "MarauderMap",
   "Punchline": "I solemnly swear that I am up to no good.",
   "Description": "Peek into party finders to know who's in there.",
-  "AssemblyVersion": "0.0.15",
-  "Changelog": [
-    "- added cute notification when copying someone's name from a party listing",
-    "- added notifications and actual errors to tell users what fails when the plugin can't load",
-    "- add script to automate publishing updates"
-  ],
+  "AssemblyVersion": "0.0.16",
+  "Changelog": "- hope this fixes it >.<",
   "RepoUrl": "https://github.com/Sowce/whodis",
   "ApplicableVersion": "any",
   "CategoryTags": [
@@ -24,11 +20,11 @@
   "ImageUrls": [
     ""
   ],
-  "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.15/latest.zip",
+  "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.16/latest.zip",
   "IsHide": false,
   "IsTestingExclusive": false,
-  "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.15/latest.zip",
-  "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.15/latest.zip",
+  "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.16/latest.zip",
+  "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.16/latest.zip",
   "DownloadCount": 67,
-  "LastUpdate": 1771582865.0
+  "LastUpdate": 1771583373.0
 }

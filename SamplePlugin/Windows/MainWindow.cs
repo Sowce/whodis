@@ -186,6 +186,12 @@ public class MainWindow : Window, IDisposable
                             if (character.Name != "Empty" && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                             {
                                 ImGui.SetClipboardText(character.Name);
+
+                                Plugin.NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
+                                {
+                                    Type = Dalamud.Interface.ImGuiNotification.NotificationType.Info,
+                                    Content = $"Copied \"{character.Name}\" to the clipboard",
+                                });
                             }
                         }
                     }

@@ -40,6 +40,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
     [PluginService] internal static IDataManager DataSheets { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static INotificationManager NotificationManager { get; private set; } = null!;
 
     private static List<ClassJob> jobs;
     private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
@@ -64,12 +65,32 @@ public unsafe sealed class Plugin : IDalamudPlugin
         }
 
         if (!File.Exists(dataDbPath))
-            throw new FileNotFoundException("Cannot find data source.");
+        {
+            NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
+            {
+                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Error,
+                Title = "Marauder's Map",
+                Content = "Unable to find data.db, install PlayerTrack or drop a data.db in this plugin's config folder before reloading it.",
+                HardExpiry = DateTime.MaxValue,
+                InitialDuration = TimeSpan.MaxValue,
+            });
+            return;
+        }
 
         dbConnection = new SqliteConnection($"Data Source={Path.GetFullPath(dataDbPath)};Mode=ReadOnly;Cache=Shared;");
 
         if (dbConnection == null)
-            throw new FileNotFoundException("Cannot find data source.");
+        {
+            NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
+            {
+                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Error,
+                Title = "Marauder's Map",
+                Content = "An error happening while trying to open the data.db file, try reloading the plugin I guess",
+                HardExpiry = DateTime.MaxValue,
+                InitialDuration = TimeSpan.MaxValue,
+            });
+            return;
+        }
 
         jobs = DataSheets.GetExcelSheet<ClassJob>().ToList();
 

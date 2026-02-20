@@ -44,7 +44,7 @@ try {
 	$pluginMaster[0].Changelog = $releaseBody
 	$pluginMaster[0].LastUpdate = [Int64]::Parse((Get-Date -UFormat %s))
 
-	$pluginMaster | ConvertTo-Json | Set-Content $pluginMasterPath
+	$pluginMaster | ConvertTo-Json -AsArray | Set-Content $pluginMasterPath
 
 	Write-Step "  Updated to $Version"
 

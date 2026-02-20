@@ -1,30 +1,32 @@
-{
-  "Author": "kwassant",
-  "Name": "Marauder's Map",
-  "InternalName": "MarauderMap",
-  "Punchline": "I solemnly swear that I am up to no good.",
-  "Description": "Peek into party finders to know who's in there.",
-  "AssemblyVersion": "0.0.18",
-  "Changelog": "- there's no way that's what's breaking it...",
-  "RepoUrl": "https://github.com/Sowce/whodis",
-  "ApplicableVersion": "any",
-  "CategoryTags": [
-    "pf",
-    "lookup",
-    "whodis",
-    "marauder",
-    "map"
-  ],
-  "DalamudApiLevel": 14,
-  "IconUrl": "https://i.imgur.com/fA7I9um.png",
-  "ImageUrls": [
-    ""
-  ],
-  "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.18/latest.zip",
-  "IsHide": false,
-  "IsTestingExclusive": false,
-  "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.18/latest.zip",
-  "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.18/latest.zip",
-  "DownloadCount": 67,
-  "LastUpdate": 1771583847
-}
+[
+  {
+    "Author": "kwassant",
+    "Name": "Marauder's Map",
+    "InternalName": "MarauderMap",
+    "Punchline": "I solemnly swear that I am up to no good.",
+    "Description": "Peek into party finders to know who's in there.",
+    "AssemblyVersion": "0.0.19",
+    "Changelog": "- please work I beg",
+    "RepoUrl": "https://github.com/Sowce/whodis",
+    "ApplicableVersion": "any",
+    "CategoryTags": [
+      "pf",
+      "lookup",
+      "whodis",
+      "marauder",
+      "map"
+    ],
+    "DalamudApiLevel": 14,
+    "IconUrl": "https://i.imgur.com/fA7I9um.png",
+    "ImageUrls": [
+      ""
+    ],
+    "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.19/latest.zip",
+    "IsHide": false,
+    "IsTestingExclusive": false,
+    "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.19/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.19/latest.zip",
+    "DownloadCount": 67,
+    "LastUpdate": 1771583946
+  }
+]

@@ -23,227 +23,230 @@ namespace SamplePlugin;
 
 struct NamePullResult
 {
-    public string Name;
-    public List<string>? OldNames;
+	public string Name;
+	public List<string>? OldNames;
 }
 
 public unsafe sealed class Plugin : IDalamudPlugin
 {
-    [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
-    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
-    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
-    [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
-    [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
-    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
-    [PluginService] internal static IPluginLog Log { get; private set; } = null!;
-    [PluginService] internal static IChatGui Chat { get; private set; } = null!;
-    [PluginService] internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
-    [PluginService] internal static IDataManager DataSheets { get; private set; } = null!;
-    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
-    [PluginService] internal static INotificationManager NotificationManager { get; private set; } = null!;
+	[PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
+	[PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
+	[PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
+	[PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
+	[PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
+	[PluginService] internal static IDataManager DataManager { get; private set; } = null!;
+	[PluginService] internal static IPluginLog Log { get; private set; } = null!;
+	[PluginService] internal static IChatGui Chat { get; private set; } = null!;
+	[PluginService] internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
+	[PluginService] internal static IDataManager DataSheets { get; private set; } = null!;
+	[PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+	[PluginService] internal static INotificationManager NotificationManager { get; private set; } = null!;
 
-    private static List<ClassJob> jobs;
-    private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
-    private Lumina.Excel.ExcelSheet<DeepDungeon> deepDungeons = DataSheets.GetExcelSheet<DeepDungeon>();
-    private Lumina.Excel.ExcelSheet<ContentRoulette> roulettes = DataSheets.GetExcelSheet<ContentRoulette>();
-    private string dutyLockedString = "";
-    private static SqliteConnection dbConnection;
+	private static List<ClassJob> jobs;
+	private Lumina.Excel.ExcelSheet<ContentFinderCondition> duties = DataSheets.GetExcelSheet<ContentFinderCondition>();
+	private Lumina.Excel.ExcelSheet<DeepDungeon> deepDungeons = DataSheets.GetExcelSheet<DeepDungeon>();
+	private Lumina.Excel.ExcelSheet<ContentRoulette> roulettes = DataSheets.GetExcelSheet<ContentRoulette>();
+	private string dutyLockedString = "";
+	private static SqliteConnection dbConnection;
 
-    public Configuration Configuration { get; init; }
+	public Configuration Configuration { get; init; }
 
-    public readonly WindowSystem WindowSystem = new("MaraudersMap");
-    private MainWindow MainWindow { get; init; }
-    private uint? baseJobIconId = null;
+	public readonly WindowSystem WindowSystem = new("MaraudersMap");
+	private MainWindow MainWindow { get; init; }
+	private uint? baseJobIconId = null;
 
-    public Plugin()
-    {
-        var dataDbPath = Path.Combine(PluginInterface.GetPluginConfigDirectory(), "..", "PlayerTrack", "data.db");
+	public Plugin()
+	{
+		var dataDbPath = Path.Combine(PluginInterface.GetPluginConfigDirectory(), "..", "PlayerTrack", "data.db");
 
-        if (!File.Exists(dataDbPath))
-        {
-            dataDbPath = Path.Combine(PluginInterface.GetPluginConfigDirectory(), "data.db");
-        }
+		if (!File.Exists(dataDbPath))
+		{
+			dataDbPath = Path.Combine(PluginInterface.GetPluginConfigDirectory(), "data.db");
+		}
 
-        if (!File.Exists(dataDbPath))
-        {
-            NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
-            {
-                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Error,
-                Title = "Marauder's Map",
-                Content = "Unable to find data.db, install PlayerTrack or drop a data.db in this plugin's config folder before reloading it.",
-                HardExpiry = DateTime.MaxValue,
-                InitialDuration = TimeSpan.MaxValue,
-            });
-            return;
-        }
+		if (!File.Exists(dataDbPath))
+		{
+			NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
+			{
+				Type = Dalamud.Interface.ImGuiNotification.NotificationType.Error,
+				Title = "Marauder's Map",
+				Content = "Unable to find data.db, install PlayerTrack or drop a data.db in this plugin's config folder before reloading it.",
+				HardExpiry = DateTime.MaxValue,
+				InitialDuration = TimeSpan.MaxValue,
+			});
+			return;
+		}
 
-        dbConnection = new SqliteConnection($"Data Source={Path.GetFullPath(dataDbPath)};Mode=ReadOnly;Cache=Shared;");
+		dbConnection = new SqliteConnection($"Data Source={Path.GetFullPath(dataDbPath)};Mode=ReadOnly;Cache=Shared;");
 
-        if (dbConnection == null)
-        {
-            NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
-            {
-                Type = Dalamud.Interface.ImGuiNotification.NotificationType.Error,
-                Title = "Marauder's Map",
-                Content = "An error happening while trying to open the data.db file, try reloading the plugin I guess",
-                HardExpiry = DateTime.MaxValue,
-                InitialDuration = TimeSpan.MaxValue,
-            });
-            return;
-        }
+		if (dbConnection == null)
+		{
+			NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
+			{
+				Type = Dalamud.Interface.ImGuiNotification.NotificationType.Error,
+				Title = "Marauder's Map",
+				Content = "An error happening while trying to open the data.db file, try reloading the plugin I guess",
+				HardExpiry = DateTime.MaxValue,
+				InitialDuration = TimeSpan.MaxValue,
+			});
+			return;
+		}
 
-        jobs = DataSheets.GetExcelSheet<ClassJob>().ToList();
+		jobs = DataSheets.GetExcelSheet<ClassJob>().ToList();
 
-        var dutyLockedRow = DataSheets.GetExcelSheet<Addon>().GetRowOrDefault(11090); // Locked Duty string row, cba translating it :33
+		var dutyLockedRow = DataSheets.GetExcelSheet<Addon>().GetRowOrDefault(11090); // Locked Duty string row, cba translating it :33
 
-        if (dutyLockedRow != null)
-            dutyLockedString = dutyLockedRow.Value.Text.ExtractText();
+		if (dutyLockedRow != null)
+			dutyLockedString = dutyLockedRow.Value.Text.ExtractText();
 
-        dbConnection.Open();
+		dbConnection.Open();
 
-        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+		Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
 
-        MainWindow = new MainWindow(this, Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "images", "tomestone.png"));
+		MainWindow = new MainWindow(this, Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "images", "tomestone.png"));
 
-        WindowSystem.AddWindow(MainWindow);
+		WindowSystem.AddWindow(MainWindow);
 
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        AddonLifecycle.RegisterListener(AddonEvent.PostRefresh, "LookingForGroupDetail", OnLookingForGroup);
-        AddonLifecycle.RegisterListener(AddonEvent.PreFinalize, "LookingForGroupDetail", OnLookingForGroupClosed);
-    }
+		PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+		AddonLifecycle.RegisterListener(AddonEvent.PostRefresh, "LookingForGroupDetail", OnLookingForGroup);
+		AddonLifecycle.RegisterListener(AddonEvent.PreFinalize, "LookingForGroupDetail", OnLookingForGroupClosed);
+	}
 
-    public void Dispose()
-    {
-        dbConnection.Close();
+	public void Dispose()
+	{
+		dbConnection.Close();
 
-        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+		PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
 
-        WindowSystem.RemoveAllWindows();
+		WindowSystem.RemoveAllWindows();
 
-        AddonLifecycle.UnregisterListener(AddonEvent.PreFinalize, "LookingForGroupDetail");
-        AddonLifecycle.UnregisterListener(AddonEvent.PostRefresh, "LookingForGroupDetail");
+		AddonLifecycle.UnregisterListener(AddonEvent.PreFinalize, "LookingForGroupDetail");
+		AddonLifecycle.UnregisterListener(AddonEvent.PostRefresh, "LookingForGroupDetail");
 
-        MainWindow.Dispose();
-    }
+		MainWindow.Dispose();
+	}
 
-    private void OnLookingForGroupClosed(AddonEvent type, AddonArgs args)
-    {
-        var lfgDetail = GameGui.GetAddonByName<AddonLookingForGroupDetail>("LookingForGroupDetail");
-        if (lfgDetail != null && lfgDetail->IsVisible)
-            return;
-        MainWindow.IsOpen = false;
-        MainWindow.DutyName = null;
-    }
+	private void OnLookingForGroupClosed(AddonEvent type, AddonArgs args)
+	{
+		var lfgDetail = GameGui.GetAddonByName<AddonLookingForGroupDetail>("LookingForGroupDetail");
+		if (lfgDetail != null && lfgDetail->IsVisible)
+			return;
+		MainWindow.IsOpen = false;
+		MainWindow.DutyName = null;
+	}
 
-    private void OnLookingForGroup(AddonEvent type, AddonArgs args)
-    {
-        if (null == baseJobIconId && PlayerState != null)
-        {
-            baseJobIconId = (uint)PartyListNumberArray.Instance()->PartyMembers[0].ClassIconId - PlayerState.ClassJob.RowId;
-        }
+	private void OnLookingForGroup(AddonEvent type, AddonArgs args)
+	{
+		if (null == baseJobIconId && PlayerState != null)
+		{
+			baseJobIconId = (uint)PartyListNumberArray.Instance()->PartyMembers[0].ClassIconId - PlayerState.ClassJob.RowId;
+		}
 
-        AgentLookingForGroup.Detailed lfg = AgentLookingForGroup.Instance()->LastViewedListing;
-        var _charList = new CharacterRow?[lfg.NumberOfParties * 8];
+		AgentLookingForGroup.Detailed lfg = AgentLookingForGroup.Instance()->LastViewedListing;
+		var _charList = new CharacterRow?[lfg.NumberOfParties * 8];
 
-        var dutyText = ((AddonLookingForGroupDetail*)GameGui.GetAddonByName("LookingForGroupDetail").Address)->DutyNameTextNode->GetText().ToString();
+		var dutyText = ((AddonLookingForGroupDetail*)GameGui.GetAddonByName("LookingForGroupDetail").Address)->DutyNameTextNode->GetText().ToString();
 
-        if (dutyText.EndsWith(dutyLockedString)) // EndsWith so we don't get bothered by the sprout/noob welcome icon
-        {
-            var dutyName = "";
+		if (dutyText.EndsWith(dutyLockedString)) // EndsWith so we don't get bothered by the sprout/noob welcome icon
+		{
+			var dutyName = "";
 
-            if (lfg.Category == 8192) // Deep Dungeons
-            {
-                dutyName = deepDungeons.GetRow((uint)lfg.DutyId - 28).Name.ToString();
-            }
-            else if (lfg.Category == 2) // Roulettes
-            {
-                dutyName = roulettes.GetRow(lfg.DutyId).Name.ToString();
-            }
-            else
-            {
-                dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
-            }
+			if (lfg.Category == 8192) // Deep Dungeons
+			{
+				dutyName = deepDungeons.GetRow((uint)lfg.DutyId - 28).Name.ToString();
+			}
+			else if (lfg.Category == 2) // Roulettes
+			{
+				dutyName = roulettes.GetRow(lfg.DutyId).Name.ToString();
+			}
+			else
+			{
+				dutyName = duties.GetRow(lfg.DutyId).Name.ToString();
+			}
 
-            MainWindow.DutyName = char.ToUpper(dutyName[0]) + dutyName.Substring(1);
-        }
+			MainWindow.DutyName = char.ToUpper(dutyName[0]) + dutyName.Substring(1);
+		}
 
 
-        for (int i = 0; i < lfg.NumberOfParties * 8; i++)
-        {
-            if (lfg.SlotFlags[i] == 0)
-            {
-                continue;
-            }
+		for (int i = 0; i < lfg.NumberOfParties * 8; i++)
+		{
+			if (lfg.SlotFlags[i] == 0)
+			{
+				continue;
+			}
 
-            if (lfg.MemberContentIds[i] == 0)
-            {
-                _charList[i] = new CharacterRow()
-                {
-                    Name = "Empty",
-                    JobIcon = 62145,
-                    Party = (byte)Math.Floor((decimal)i / 8),
-                };
-                continue;
-            }
+			if (lfg.MemberContentIds[i] == 0)
+			{
+				_charList[i] = new CharacterRow()
+				{
+					Name = "Empty",
+					JobIcon = 62145,
+					Party = (byte)Math.Floor((decimal)i / 8),
+				};
+				continue;
+			}
 
-            var cachedName = GetNameFromContentID(lfg.MemberContentIds[i]);
+			var cachedName = GetNameFromContentID(lfg.MemberContentIds[i]);
 
-            if (lfg.MemberContentIds[i] == lfg.LeaderContentId)
-            {
-                if (cachedName == null)
-                {
-                    cachedName = new NamePullResult() { Name = lfg.LeaderString };
-                }
-                else if (cachedName.Value.Name != lfg.LeaderString)
-                {
-                    cachedName = new NamePullResult()
-                    {
-                        Name = lfg.LeaderString,
-                        OldNames = cachedName.Value.OldNames != null ?
-                            new List<string>() { cachedName.Value.Name }.Concat(cachedName.Value.OldNames).ToList()
-                            : new List<string>() { cachedName.Value.Name }
-                    };
-                }
-            }
+			if (lfg.MemberContentIds[i] == lfg.LeaderContentId)
+			{
+				if (cachedName == null)
+				{
+					cachedName = new NamePullResult() { Name = lfg.LeaderString };
+				}
+				else if (cachedName.Value.Name != lfg.LeaderString)
+				{
+					cachedName = new NamePullResult()
+					{
+						Name = lfg.LeaderString,
+						OldNames = cachedName.Value.OldNames != null ?
+							new List<string>() { cachedName.Value.Name }.Concat(cachedName.Value.OldNames).ToList()
+							: new List<string>() { cachedName.Value.Name }
+					};
+				}
+			}
 
-            _charList[i] = new CharacterRow()
-            {
-                Id = lfg.MemberContentIds[i],
-                JobIcon = GetJobIconId(lfg.Jobs[i]),
-                Name = cachedName?.Name ?? "???",
-                oldNames = cachedName?.OldNames,
-                Party = (byte)Math.Floor((decimal)i / 8),
-                Blocked = isCharacterBlacklisted(lfg.MemberContentIds[i], cachedName?.Name ?? "???"),
-            };
-        }
+			_charList[i] = new CharacterRow()
+			{
+				Id = lfg.MemberContentIds[i],
+				JobIcon = GetJobIconId(lfg.Jobs[i]),
+				Name = cachedName?.Name ?? "???",
+				oldNames = cachedName?.OldNames,
+				Party = (byte)Math.Floor((decimal)i / 8),
+				Blocked = isCharacterBlacklisted(lfg.MemberContentIds[i], cachedName?.Name ?? "???"),
+			};
+		}
 
-        MainWindow.characters = _charList;
+		MainWindow.characters = _charList;
 
-        if (_charList.All(chr => !chr.HasValue))
-        {
-            MainWindow.IsOpen = false;
-            return;
-        }
+		if (_charList.All(chr => !chr.HasValue))
+		{
+			MainWindow.IsOpen = false;
+			return;
+		}
 
-        MainWindow.IsOpen = true;
-    }
+		MainWindow.IsOpen = true;
+	}
 
-    private BlockStatus isCharacterBlacklisted(ulong contentId, string name)
-    {
-        var blInstance = *InfoProxyBlacklist.Instance();
-        var maybeBlocked = false;
+	private BlockStatus isCharacterBlacklisted(ulong contentId, string name)
+	{
+		var blInstance = *InfoProxyBlacklist.Instance();
+		var maybeBlocked = false;
 
-        for (var i = 0; i < blInstance.BlockedCharactersCount; i++)
-        {
-            if (blInstance.BlockedCharacters[i].Flag == (byte)BlockResultType.BlockedByContentId && blInstance.BlockedCharacters[i].Id == contentId)
-                return BlockStatus.Blocked;
+		for (var i = 0; i < blInstance.BlockedCharactersCount; i++)
+		{
+			if (blInstance.BlockedCharacters[i].Flag == (byte)BlockResultType.BlockedByContentId && blInstance.BlockedCharacters[i].Id == contentId)
+				return BlockStatus.Blocked;
 
-            if (blInstance.BlockedCharacters[i].Name.ExtractText() == name)
-                maybeBlocked = true;
-        }
+			if (blInstance.BlockedCharacters[i].Name.ExtractText() == name)
+			{
+				maybeBlocked = true;
+				break;
+			}
+		}
 
-        using var checkCmd = dbConnection.CreateCommand();
-        checkCmd.CommandText = @"
+		using var checkCmd = dbConnection.CreateCommand();
+		checkCmd.CommandText = @"
             SELECT 1
             FROM social_list_members slm
             JOIN social_lists sl ON sl.id = slm.social_list_id
@@ -252,78 +255,78 @@ public unsafe sealed class Plugin : IDalamudPlugin
             LIMIT 1;
         "; // list_type = 2 -> blacklist
 
-        checkCmd.Parameters.AddWithValue("$pid", contentId);
+		checkCmd.Parameters.AddWithValue("$pid", contentId);
 
-        var result = checkCmd.ExecuteScalar();
+		var result = checkCmd.ExecuteScalar();
 
-        if (result != null)
-            return BlockStatus.Blocked;
-        if (maybeBlocked)
-            return BlockStatus.MaybeBlocked;
+		if (result != null)
+			return BlockStatus.Blocked;
+		if (maybeBlocked)
+			return BlockStatus.MaybeBlocked;
 
-        return BlockStatus.NotBlocked;
-    }
+		return BlockStatus.NotBlocked;
+	}
 
-    private uint GetJobIconId(uint JobId)
-    {
-        if (baseJobIconId == null)
-            return 62100 + JobId;
-        return (uint)baseJobIconId + JobId;
-    }
+	private uint GetJobIconId(uint JobId)
+	{
+		if (baseJobIconId == null)
+			return 62100 + JobId;
+		return (uint)baseJobIconId + JobId;
+	}
 
-    private NamePullResult? GetNameFromContentID(ulong contentId)
-    {
-        if (contentId == 0)
-            return null;
+	private NamePullResult? GetNameFromContentID(ulong contentId)
+	{
+		if (contentId == 0)
+			return null;
 
-        if (contentId == PlayerState.ContentId)
-        {
-            return new NamePullResult() { Name = PlayerState.CharacterName, OldNames = null };
-        }
+		if (contentId == PlayerState.ContentId)
+		{
+			return new NamePullResult() { Name = PlayerState.CharacterName, OldNames = null };
+		}
 
-        using var command = dbConnection.CreateCommand();
-        command.CommandText = "SELECT id,name FROM players WHERE content_id=@cid";
-        command.Parameters.AddWithValue("@cid", contentId);
+		using var command = dbConnection.CreateCommand();
+		command.CommandText = "SELECT id,name FROM players WHERE content_id=@cid";
+		command.Parameters.AddWithValue("@cid", contentId);
 
-        var reader = command.ExecuteReader();
+		var reader = command.ExecuteReader();
 
-        if (!reader.HasRows)
-            return null;
+		if (!reader.HasRows)
+			return null;
 
-        reader.Read();
-        var pid = reader.GetInt64(0);
-        var returnValue = reader.GetString(1);
+		reader.Read();
+		var pid = reader.GetInt64(0);
+		var returnValue = reader.GetString(1);
 
-        reader.Close();
+		reader.Close();
 
-        command.CommandText = "SELECT player_name FROM player_name_world_histories WHERE player_id=@pid";
-        command.Parameters.AddWithValue("@pid", pid);
+		command.CommandText = "SELECT player_name FROM player_name_world_histories WHERE player_id=@pid";
+		command.Parameters.AddWithValue("@pid", pid);
 
-        reader = command.ExecuteReader();
+		reader = command.ExecuteReader();
 
-        if (!reader.HasRows)
-            return new NamePullResult() { Name = returnValue, OldNames = null };
+		if (!reader.HasRows)
+			return new NamePullResult() { Name = returnValue, OldNames = null };
 
-        var names = new List<string>();
+		var names = new List<string>();
 
-        while (reader.Read())
-        {
-            var name = reader.GetString(0);
-            if (returnValue != name
-                && !names.Contains(name)
-                && !jobs.Any(job => job.Name.ToString().ToLower() == name.ToLower())
-                )
-                names.Add(name);
-        }
+		while (reader.Read())
+		{
+			var name = reader.GetString(0);
+			if (returnValue != name
+				&& !names.Contains(name)
+				&& !jobs.Any(job => job.Name.ToString().ToLower() == name.ToLower())
+				)
+				names.Add(name);
+		}
 
-        reader.Close();
+		reader.Close();
 
-        if (names.Count > 0 && jobs.Any(job => job.Name.ToString().ToLower() == returnValue.ToLower()))
-        {
-            returnValue = names[0];
-            names.RemoveAt(0);
-        }
+		if (names.Count > 0 && jobs.Any(job => job.Name.ToString().ToLower() == returnValue.ToLower()))
+		{
+			returnValue = names[0];
+			names.RemoveAt(0);
+		}
 
-        return new NamePullResult() { Name = returnValue, OldNames = names.Count > 0 ? names : null };
-    }
+		return new NamePullResult() { Name = returnValue, OldNames = names.Count > 0 ? names : null };
+	}
 }

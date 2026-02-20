@@ -29,13 +29,11 @@ try {
 	Write-Step "Updating version in MarauderMap.csproj..."
 
 	$content = Get-Content $csprojPath -Raw
-	$content = $content -replace '<Version>.*?</Version>',                 "<Version>$Version</Version>"
-	Set-Content $csprojPath $content
+	$content = $content -replace '<Version>.*?</Version>', "<Version>$Version</Version>"
+	Set-Content $csprojPath $content.trim()
 
-	$releaseBody = gh api repos/{owner}/{repo}/releases/generate-notes `
-		--method POST `
-		-f tag_name=$Version `
-		--jq '.body'
+	$lastReleaseHash = (Get-Content "LAST_RELEASE").trim()
+	$releaseBody = (git log "$lastReleaseHash..HEAD" --pretty=format:"- %s").trim()
 
 	Write-Step $releaseBody
 
@@ -46,7 +44,7 @@ try {
 	$pluginMaster[0].Changelog = $releaseBody
 	$pluginMaster[0].LastUpdate = [double]::Parse((Get-Date -UFormat %s))
 
-	$pluginMaster | ConvertTo-Json -Depth 10 | Set-Content $pluginMasterPath
+	$pluginMaster | ConvertTo-Json -Depth 10 | Set-Content $pluginMasterPath.trim()
 
 	Write-Step "  Updated to $Version"
 
@@ -55,11 +53,9 @@ try {
 
 	Write-Step "Creating GitHub release and uploading assets..."
 
-	$zipPath = "SamplePlugin\bin\x64\Release\MarauderMap\latest.zip"
+	$zipPath = ".\SamplePlugin\bin\x64\Release\MarauderMap\latest.zip"
 
-	gh release create $Version $zipPath `
-		--title "$Version" `
-		--notes $releaseBody
+	gh release create "$Version" "$zipPath" --notes "$releaseBody"
 
 	if ($LASTEXITCODE -ne 0) { Fail "gh release create failed." }
 
@@ -67,15 +63,19 @@ try {
 	git commit -m "Bump version to $Version"
 	git push
 
+	Set-Content "LAST_RELEASE" ((git rev-parse HEAD).Trim())
+
 	if ($LASTEXITCODE -ne 0) { Fail "git push failed." }
 } catch {
-	Write-Step "Release failed, restoring original files..." -ForegroundColor Yellow
+	Write-Host "Release failed, restoring original files..." -ForegroundColor Yellow
 
-    Set-Content $pluginMasterPath $pluginMasterOriginal
-    Set-Content $csprojPath       $csprojOriginal
+    Set-Content $pluginMasterPath $pluginMasterOriginal.trim()
+    Set-Content $csprojPath       $csprojOriginal.trim()
 
-    Write-Step "  Restored: pluginmaster.json" -ForegroundColor Yellow
-    Write-Step "  Restored: MarauderMap.csproj" -ForegroundColor Yellow
+    Write-Host "  Restored: pluginmaster.json" -ForegroundColor Yellow
+    Write-Host "  Restored: MarauderMap.csproj" -ForegroundColor Yellow
 
     Fail $_.Exception.Message
 }
+
+Write-Step "Release process completed successfully!"

@@ -4,8 +4,8 @@
   "InternalName": "MarauderMap",
   "Punchline": "I solemnly swear that I am up to no good.",
   "Description": "Peek into party finders to know who's in there.",
-  "AssemblyVersion": "0.0.16",
-  "Changelog": "- hope this fixes it >.<",
+  "AssemblyVersion": "0.0.17",
+  "Changelog": "- one fix at a time, this'll be good I swear",
   "RepoUrl": "https://github.com/Sowce/whodis",
   "ApplicableVersion": "any",
   "CategoryTags": [
@@ -20,11 +20,11 @@
   "ImageUrls": [
     ""
   ],
-  "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.16/latest.zip",
+  "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.17/latest.zip",
   "IsHide": false,
   "IsTestingExclusive": false,
-  "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.16/latest.zip",
-  "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.16/latest.zip",
+  "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.17/latest.zip",
+  "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.17/latest.zip",
   "DownloadCount": 67,
-  "LastUpdate": 1771583373.0
+  "LastUpdate": 1771583788
 }

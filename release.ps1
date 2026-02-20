@@ -42,9 +42,9 @@ try {
 	$pluginMaster[0].DownloadLinkTesting = "https://github.com/Sowce/whodis/releases/download/$Version/latest.zip"
 	$pluginMaster[0].DownloadLinkUpdate = "https://github.com/Sowce/whodis/releases/download/$Version/latest.zip"
 	$pluginMaster[0].Changelog = $releaseBody
-	$pluginMaster[0].LastUpdate = [double]::Parse((Get-Date -UFormat %s))
+	$pluginMaster[0].LastUpdate = [Int64]::Parse((Get-Date -UFormat %s))
 
-	$pluginMaster | ConvertTo-Json -Depth 10 | Set-Content $pluginMasterPath.trim()
+	$pluginMaster | ConvertTo-Json | Set-Content $pluginMasterPath.trim()
 
 	Write-Step "  Updated to $Version"
 

@@ -7,5 +7,5 @@
   "ApplicableVersion": "any",
   "Tags": ["marauder", "map", "pf", "party", "finder", "name", "who"],
   "IconUrl": "https://i.imgur.com/fA7I9um.png",
-  "DalamudApiLevel": 14
+  "DalamudApiLevel": 15
 }

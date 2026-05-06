@@ -33,7 +33,7 @@ try {
 	Set-Content $csprojPath $content.trim()
 
 	$lastReleaseHash = (Get-Content "LAST_RELEASE").trim()
-	$releaseBody = (git log "$lastReleaseHash..HEAD" --pretty=format:"- %s").trim() | Join-String -Separator '\n'
+	$releaseBody = (git log "$lastReleaseHash..HEAD" --pretty=format:"- %s").trim() | Join-String -Separator "`n"
 
 	Write-Step $releaseBody
 

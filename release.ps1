@@ -48,7 +48,7 @@ try {
 
 	Write-Step "  Updated to $Version"
 
-	dotnet build MarauderMap.sln
+	dotnet build MarauderMap.sln --no-incremental --no-restore
 	if ($LASTEXITCODE -ne 0) { Fail "Build failed." }
 
 	Write-Step "Creating GitHub release and uploading assets..."

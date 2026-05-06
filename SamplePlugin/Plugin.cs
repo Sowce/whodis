@@ -180,7 +180,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
                 _charList[i] = new CharacterRow()
                 {
                     Name = "Empty",
-                    JobIcon = 62145,
+                    JobIcon = 62146,
                     Party = (byte)Math.Floor((decimal)i / 8),
                 };
                 continue;

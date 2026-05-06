@@ -48,6 +48,8 @@ try {
 
 	Write-Step "  Updated to $Version"
 
+	Remove-Item -Recurse -Force ".\bin\x64"
+
 	dotnet build MarauderMap.sln --no-incremental --no-restore
 	if ($LASTEXITCODE -ne 0) { Fail "Build failed." }
 

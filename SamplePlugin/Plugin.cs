@@ -54,6 +54,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     public readonly WindowSystem WindowSystem = new("MaraudersMap");
     private MainWindow MainWindow { get; init; }
     private uint? baseJobIconId = null;
+    private const uint DefaultJobIconId = 62100;
 
     public Plugin()
     {
@@ -180,7 +181,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
                 _charList[i] = new CharacterRow()
                 {
                     Name = "Empty",
-                    JobIcon = 62146,
+                    JobIcon = DefaultJobIconId + (uint)jobs.Count, // hopefully future proof
                     Party = (byte)Math.Floor((decimal)i / 8),
                 };
                 continue;
@@ -270,7 +271,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     private uint GetJobIconId(uint JobId)
     {
         if (baseJobIconId == null)
-            return 62100 + JobId;
+            return DefaultJobIconId + JobId;
         return (uint)baseJobIconId + JobId;
     }
 

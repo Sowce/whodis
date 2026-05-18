@@ -300,7 +300,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
         reader.Close();
 
-        command.CommandText = "SELECT player_name FROM player_name_world_histories WHERE player_id=@pid";
+        command.CommandText = "SELECT player_name FROM player_name_world_histories WHERE player_id=@pid ORDER BY created DESC";
         command.Parameters.AddWithValue("@pid", pid);
 
         reader = command.ExecuteReader();

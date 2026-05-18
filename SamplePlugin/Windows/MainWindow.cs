@@ -180,7 +180,19 @@ public class MainWindow : Window, IDisposable
                         {
                             if (character.oldNames != null)
                             {
-                                ImGui.SetTooltip(String.Join("\n", character.oldNames));
+                                ImU8String text = String.Join("\n", character.oldNames);
+                                ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
+
+                                if (character.oldNames.Count > 1)
+                                {
+                                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
+                                    ImGui.Text("Previous names from newest to oldest:");
+                                    ImGui.PopStyleColor();
+                                }
+
+                                ImGui.Text(text.Span);
+                                ImGui.EndTooltip();
+                                text.Recycle();
                             }
 
                             if (character.Name != "Empty" && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))

@@ -183,12 +183,17 @@ public class MainWindow : Window, IDisposable
                                 ImU8String text = String.Join("\n", character.oldNames);
                                 ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
 
+                                ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
                                 if (character.oldNames.Count > 1)
                                 {
-                                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
                                     ImGui.Text("Previous names from newest to oldest:");
-                                    ImGui.PopStyleColor();
                                 }
+                                else
+                                {
+                                    ImGui.Text("Also known as");
+                                    ImGui.SameLine();
+                                }
+                                ImGui.PopStyleColor();
 
                                 ImGui.Text(text.Span);
                                 ImGui.EndTooltip();

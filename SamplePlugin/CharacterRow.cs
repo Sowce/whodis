@@ -12,10 +12,11 @@ namespace SamplePlugin
     public struct CharacterRow
     {
         public byte Party;
-        public BlockStatus Blocked;
         public uint JobIcon;
         public ulong Id;
         public string? Name;
         public List<string>? oldNames;
+        public BlockStatus Blocked;
+        public string? BlacklistNote;
     }
 }

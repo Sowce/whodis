@@ -178,26 +178,40 @@ public class MainWindow : Window, IDisposable
 
                         if (ImGui.IsMouseHoveringRect(cursorStart, new Vector2(ImGui.GetItemRectMax().X, tooltipHitboxHeight), false))
                         {
-                            if (character.oldNames != null)
+                            if (character.oldNames != null || character.BlacklistNote != null)
                             {
-                                ImU8String text = String.Join("\n", character.oldNames);
                                 ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
 
-                                ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
-                                if (character.oldNames.Count > 1)
+                                if (character.BlacklistNote != null)
                                 {
-                                    ImGui.Text("Previous names from newest to oldest:");
-                                }
-                                else
-                                {
-                                    ImGui.Text("Also known as");
+                                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
+                                    ImGui.Text("Note:");
+                                    ImGui.PopStyleColor();
                                     ImGui.SameLine();
+                                    ImGui.Text(character.BlacklistNote);
                                 }
-                                ImGui.PopStyleColor();
 
-                                ImGui.Text(text.Span);
+                                if (character.oldNames != null)
+                                {
+                                    ImU8String text = String.Join("\n", character.oldNames);
+                                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
+                                    if (character.oldNames.Count > 1)
+                                    {
+                                        ImGui.Text("Previous names from newest to oldest:");
+                                    }
+                                    else
+                                    {
+                                        ImGui.Text("Also known as");
+                                        ImGui.SameLine();
+                                    }
+                                    ImGui.PopStyleColor();
+
+                                    ImGui.Text(text.Span);
+                                    text.Recycle();
+                                }
+
+
                                 ImGui.EndTooltip();
-                                text.Recycle();
                             }
 
                             if (character.Name != "Empty" && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))

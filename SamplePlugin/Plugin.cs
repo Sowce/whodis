@@ -27,6 +27,12 @@ struct NamePullResult
     public List<string>? OldNames;
 }
 
+struct BlacklistLookupResult
+{
+    public BlockStatus Status;
+    public string? Note;
+}
+
 public unsafe sealed class Plugin : IDalamudPlugin
 {
     [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
@@ -207,6 +213,8 @@ public unsafe sealed class Plugin : IDalamudPlugin
                 }
             }
 
+            var blockedEntry = isCharacterBlacklisted(lfg.MemberContentIds[i], cachedName?.Name ?? "???");
+
             _charList[i] = new CharacterRow()
             {
                 Id = lfg.MemberContentIds[i],
@@ -214,7 +222,8 @@ public unsafe sealed class Plugin : IDalamudPlugin
                 Name = cachedName?.Name ?? "???",
                 oldNames = cachedName?.OldNames,
                 Party = (byte)Math.Floor((decimal)i / 8),
-                Blocked = isCharacterBlacklisted(lfg.MemberContentIds[i], cachedName?.Name ?? "???"),
+                Blocked = blockedEntry.Status,
+                BlacklistNote = blockedEntry.Note,
             };
         }
 
@@ -229,18 +238,25 @@ public unsafe sealed class Plugin : IDalamudPlugin
         MainWindow.IsOpen = true;
     }
 
-    private BlockStatus isCharacterBlacklisted(ulong contentId, string name)
+    private BlacklistLookupResult isCharacterBlacklisted(ulong contentId, string name)
     {
         var blInstance = *InfoProxyBlacklist.Instance();
+        var blNotesInstance = BlackListStringArray.Instance()->Notes;
         var maybeBlocked = false;
+        var note = "";
 
         for (var i = 0; i < blInstance.BlockedCharactersCount; i++)
         {
-            if (blInstance.BlockedCharacters[i].Flag == (byte)BlockResultType.BlockedByContentId && blInstance.BlockedCharacters[i].Id == contentId)
-                return BlockStatus.Blocked;
+            var blockEntry = blInstance.BlockedCharacters[i];
+            if (blockEntry.Flag == (byte)BlockResultType.BlockedByContentId && blockEntry.Id == contentId)
+            {
+                note = blNotesInstance[i].ExtractText();
+                return new BlacklistLookupResult() { Status = BlockStatus.Blocked, Note = note == "" ? null : note };
+            }
 
             if (blInstance.BlockedCharacters[i].Name.ExtractText() == name)
             {
+                note = blNotesInstance[i].ExtractText();
                 maybeBlocked = true;
                 break;
             }
@@ -261,11 +277,13 @@ public unsafe sealed class Plugin : IDalamudPlugin
         var result = checkCmd.ExecuteScalar();
 
         if (result != null)
-            return BlockStatus.Blocked;
+        {
+            return new BlacklistLookupResult() { Status = BlockStatus.Blocked, Note = note == "" ? null : note };
+        }
         if (maybeBlocked)
-            return BlockStatus.MaybeBlocked;
+            return new BlacklistLookupResult() { Status = BlockStatus.MaybeBlocked, Note = note == "" ? null : note };
 
-        return BlockStatus.NotBlocked;
+        return new BlacklistLookupResult() { Status = BlockStatus.NotBlocked, Note = null };
     }
 
     private uint GetJobIconId(uint JobId)

@@ -5,8 +5,8 @@
     "InternalName": "MarauderMap",
     "Punchline": "I solemnly swear that I am up to no good.",
     "Description": "Peek into party finders to know who's in there.",
-    "AssemblyVersion": "0.0.22.12",
-    "Changelog": "- release db file when unloading plugin",
+    "AssemblyVersion": "0.0.22.13",
+    "Changelog": "- i clear the pool, it frees the file, idk",
     "RepoUrl": "https://github.com/Sowce/whodis",
     "ApplicableVersion": "any",
     "CategoryTags": [
@@ -21,12 +21,12 @@
     "ImageUrls": [
       ""
     ],
-    "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.22.12/latest.zip",
+    "DownloadLinkInstall": "https://github.com/Sowce/whodis/releases/download/0.0.22.13/latest.zip",
     "IsHide": false,
     "IsTestingExclusive": false,
-    "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.22.12/latest.zip",
-    "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.22.12/latest.zip",
+    "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.22.13/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.22.13/latest.zip",
     "DownloadCount": 67,
-    "LastUpdate": 1780235321
+    "LastUpdate": 1780235908
   }
 ]

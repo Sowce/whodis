@@ -121,6 +121,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
 
     public void Dispose()
     {
+        SqliteConnection.ClearPool(dbConnection);
         dbConnection.Close();
         dbConnection.Dispose();
 

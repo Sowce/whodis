@@ -122,6 +122,7 @@ public unsafe sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         dbConnection.Close();
+        dbConnection.Dispose();
 
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
 

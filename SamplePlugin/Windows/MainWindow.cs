@@ -57,6 +57,7 @@ public class MainWindow : Window, IDisposable
     public unsafe override void Draw()
     {
         var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
+        var textHeight = ImGui.GetTextLineHeight();
 
         if (DutyName != null)
         {
@@ -155,7 +156,7 @@ public class MainWindow : Window, IDisposable
 
                         ImGuiHelpers.GetButtonSize(nameText);
 
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize(nameText).Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2);
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - textHeight) / 2);
 
                         var textColor = 0xFFFFFFFF;
 

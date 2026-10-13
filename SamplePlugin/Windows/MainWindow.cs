@@ -149,14 +149,13 @@ public class MainWindow : Window, IDisposable
 
                     ImGui.TableSetColumnIndex(columIdx * 2 + 1);
 
-
                     if (character.Name != null)
                     {
                         var nameText = $"{character.Name}{(character.oldNames != null ? "*" : "")} "; // trailing space is on purpose, easier than padding :3
 
                         ImGuiHelpers.GetButtonSize(nameText);
 
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - textHeight) / 2);
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize(nameText).Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2 + 1);
 
                         var textColor = 0xFFFFFFFF;
 
@@ -229,7 +228,7 @@ public class MainWindow : Window, IDisposable
                     }
                     else
                     {
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize("???").Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2);
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize("???").Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2 + 1);
                         ImGui.TextUnformatted("???");
                     }
                 }

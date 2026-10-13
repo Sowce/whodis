@@ -6,7 +6,7 @@
     "Punchline": "I solemnly swear that I am up to no good.",
     "Description": "Peek into party finders to know who's in there.",
     "AssemblyVersion": "0.0.22.14",
-    "Changelog": "- better vertical alignment",
+    "Changelog": "- Merge branch 'master' of https://github.com/Sowce/whodis\n- Bump version to 0.0.22.14\n- better vertical alignment",
     "RepoUrl": "https://github.com/Sowce/whodis",
     "ApplicableVersion": "any",
     "CategoryTags": [
@@ -27,6 +27,6 @@
     "DownloadLinkTesting": "https://github.com/Sowce/whodis/releases/download/0.0.22.14/latest.zip",
     "DownloadLinkUpdate": "https://github.com/Sowce/whodis/releases/download/0.0.22.14/latest.zip",
     "DownloadCount": 67,
-    "LastUpdate": 1791924602
+    "LastUpdate": 1791925117
   }
 ]

@@ -57,7 +57,6 @@ public class MainWindow : Window, IDisposable
     public unsafe override void Draw()
     {
         var lfgAddon = Plugin.GameGui.GetAddonByName("LookingForGroupDetail");
-        var textHeight = ImGui.GetTextLineHeight();
 
         if (DutyName != null)
         {
@@ -77,159 +76,161 @@ public class MainWindow : Window, IDisposable
             }
         }
 
-        using (var table = ImRaii.Table("oomf", characters!.Length / 4))
+        using var table = ImRaii.Table("oomf", characters!.Length / 4, ImGuiTableFlags.None);
+
+        for (var i = 0; i < characters.Length / 8; i++)
         {
-            for (var i = 0; i < characters.Length / 8; i++)
-            {
-                ImGui.TableSetupColumn("" + i * 2, ImGuiTableColumnFlags.WidthFixed);
-                ImGui.TableSetupColumn("" + i * 2 + 1, ImGuiTableColumnFlags.WidthStretch);
-            }
+            ImGui.TableSetupColumn("" + i * 2, ImGuiTableColumnFlags.WidthFixed);
+            ImGui.TableSetupColumn("" + i * 2 + 1, ImGuiTableColumnFlags.WidthStretch);
+        }
 
-            for (var rowIdx = 0; rowIdx < 8; rowIdx++)
-            {
-                ImGui.TableNextRow();
+        for (var rowIdx = 0; rowIdx < 8; rowIdx++)
+        {
+            ImGui.TableNextRow(ImGuiTableRowFlags.None, IconSize.Y);
 
-                for (var columIdx = 0; columIdx < characters.Length / 8; columIdx++)
+            for (var columIdx = 0; columIdx < characters.Length / 8; columIdx++)
+            {
+                var _character = characters[columIdx * 8 + rowIdx];
+                ImGui.TableSetColumnIndex(columIdx * 2);
+
+                var cursorStart = ImGui.GetCursorScreenPos();
+
+                if (_character == null)
                 {
-                    var _character = characters[columIdx * 8 + rowIdx];
-                    ImGui.TableSetColumnIndex(columIdx * 2);
-                    var cursorStart = ImGui.GetCursorScreenPos();
-
-                    if (_character == null)
+                    var icon = Plugin.TextureProvider.GetFromGameIcon(62574).GetWrapOrDefault();
+                    if (icon != null)
                     {
-                        var icon = Plugin.TextureProvider.GetFromGameIcon(62574).GetWrapOrDefault();
-                        if (icon != null)
-                        {
-                            ImGui.Image(icon.Handle, IconSize);
-                        }
-                        else
-                        {
-                            ImGui.Dummy(IconSize);
-                        }
-
-
-                        var lfgNone = Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
-                        if (lfgNone.TryGetWrap(out var lfgTex, out var _))
-                        {
-                            ImGui.SetCursorScreenPos(cursorStart);
-                            if (!lfgNoneUv0.HasValue || !lfgNoneUv1.HasValue)
-                            {
-                                lfgNoneUv0 = new Vector2(0f / lfgTex.Width, 272f / lfgTex.Height);
-                                lfgNoneUv1 = new Vector2(56f / lfgTex.Width, 328f / lfgTex.Height);
-                            }
-
-                            ImGui.SetCursorPos(ImGui.GetCursorPos() + IconSize * 0.05f);
-
-                            ImGui.Image(
-                                lfgTex.Handle,
-                                IconSize * 0.90f,
-                                lfgNoneUv0.Value,
-                                lfgNoneUv1.Value
-                            );
-
-                            ImGui.SetCursorPos(ImGui.GetCursorPos() - IconSize * 0.05f);
-                        }
-
-                        continue;
-                    }
-
-                    var character = _character.Value;
-                    var jobIcon = Plugin.TextureProvider.GetFromGameIcon(character.JobIcon).GetWrapOrDefault();
-
-                    if (jobIcon != null)
-                    {
-                        ImGui.Image(jobIcon.Handle, IconSize);
+                        ImGui.Image(icon.Handle, IconSize);
                     }
                     else
                     {
                         ImGui.Dummy(IconSize);
                     }
 
-                    var tooltipHitboxHeight = ImGui.GetItemRectMax().Y;
 
-                    ImGui.TableSetColumnIndex(columIdx * 2 + 1);
-
-                    if (character.Name != null)
+                    var lfgNone = Plugin.TextureProvider.GetFromGame("ui/uld/LFG_hr1.tex");
+                    if (lfgNone.TryGetWrap(out var lfgTex, out var _))
                     {
-                        var nameText = $"{character.Name}{(character.oldNames != null ? "*" : "")} "; // trailing space is on purpose, easier than padding :3
-
-                        ImGuiHelpers.GetButtonSize(nameText);
-
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize(nameText).Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2 + 1);
-
-                        var textColor = 0xFFFFFFFF;
-
-                        if (character.Name == "Empty")
+                        //ImGui.SetCursorScreenPos(cursorStart);
+                        if (!lfgNoneUv0.HasValue || !lfgNoneUv1.HasValue)
                         {
-                            textColor = 0x80FFFFFF;
-                        }
-                        else if (character.Blocked == BlockStatus.Blocked)
-                        {
-                            textColor = 0xFF0000FF;
-                        }
-                        else if (character.Blocked == BlockStatus.MaybeBlocked)
-                        {
-                            textColor = 0xFF00A5FF;
+                            lfgNoneUv0 = new Vector2(0f / lfgTex.Width, 272f / lfgTex.Height);
+                            lfgNoneUv1 = new Vector2(56f / lfgTex.Width, 328f / lfgTex.Height);
                         }
 
-                        ImGui.PushStyleColor(ImGuiCol.Text, textColor);
-                        ImGui.Text(nameText);
-                        ImGui.PopStyleColor();
+                        //ImGui.SetCursorPos(ImGui.GetCursorPos() + IconSize * 0.05f);
 
-                        if (ImGui.IsMouseHoveringRect(cursorStart, new Vector2(ImGui.GetItemRectMax().X, tooltipHitboxHeight), false))
-                        {
-                            if (character.oldNames != null || character.BlacklistNote != null)
-                            {
-                                ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
+                        ImGui.Image(
+                            lfgTex.Handle,
+                            IconSize * 0.90f,
+                            lfgNoneUv0.Value,
+                            lfgNoneUv1.Value
+                        );
 
-                                if (character.BlacklistNote != null)
-                                {
-                                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
-                                    ImGui.Text("Note:");
-                                    ImGui.PopStyleColor();
-                                    ImGui.SameLine();
-                                    ImGui.Text(character.BlacklistNote);
-                                }
-
-                                if (character.oldNames != null)
-                                {
-                                    ImU8String text = String.Join("\n", character.oldNames);
-                                    ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
-                                    if (character.oldNames.Count > 1)
-                                    {
-                                        ImGui.Text("Previous names from newest to oldest:");
-                                    }
-                                    else
-                                    {
-                                        ImGui.Text("Also known as");
-                                        ImGui.SameLine();
-                                    }
-                                    ImGui.PopStyleColor();
-
-                                    ImGui.Text(text.Span);
-                                    text.Recycle();
-                                }
-
-
-                                ImGui.EndTooltip();
-                            }
-
-                            if (character.Name != "Empty" && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                            {
-                                ImGui.SetClipboardText(character.Name);
-
-                                Plugin.NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
-                                {
-                                    Type = Dalamud.Interface.ImGuiNotification.NotificationType.Info,
-                                    Content = $"Copied \"{character.Name}\" to the clipboard",
-                                });
-                            }
-                        }
+                        //ImGui.SetCursorPos(ImGui.GetCursorPos() - IconSize * 0.05f);
                     }
-                    else
+
+                    continue;
+                }
+
+                var character = _character.Value;
+                var jobIcon = Plugin.TextureProvider.GetFromGameIcon(character.JobIcon).GetWrapOrDefault();
+
+                if (jobIcon != null)
+                {
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1);
+                    ImGui.Image(jobIcon.Handle, IconSize);
+                }
+                else
+                {
+                    ImGui.Dummy(IconSize);
+                }
+
+                ImGui.TableSetColumnIndex(columIdx * 2 + 1);
+
+                var textPos = ImGui.GetCursorScreenPos();
+                var textHeight = ImGui.GetTextLineHeight();
+
+                textPos.Y = cursorStart.Y + (IconSize.Y - textHeight) * 0.5f;
+
+                ImGui.SetCursorScreenPos(textPos);
+
+                if (character.Name == null)
+                {
+                    ImGui.TextUnformatted("???");
+                    continue;
+                }
+
+                var nameText = $"{character.Name}{(character.oldNames != null ? "*" : "")} "; // trailing space is on purpose, easier than padding :3
+
+                //ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize(nameText).Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2 + 1);
+
+                var textColor = 0xFFFFFFFF;
+
+                if (character.Name == "Empty")
+                {
+                    textColor = 0x80FFFFFF;
+                }
+                else if (character.Blocked == BlockStatus.Blocked)
+                {
+                    textColor = 0xFF0000FF;
+                }
+                else if (character.Blocked == BlockStatus.MaybeBlocked)
+                {
+                    textColor = 0xFF00A5FF;
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, textColor);
+                ImGui.Text(nameText);
+                ImGui.PopStyleColor();
+
+                if (ImGui.IsMouseHoveringRect(cursorStart, ImGui.GetItemRectMax(), false))
+                {
+                    if (character.oldNames != null || character.BlacklistNote != null)
                     {
-                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (ImGui.GetItemRectSize().Y - ImGui.CalcTextSize("???").Y - ImGui.GetStyle().ItemInnerSpacing.Y) / 2 + 1);
-                        ImGui.TextUnformatted("???");
+                        ImGuiP.BeginTooltipEx(ImGuiTooltipFlags.OverridePreviousTooltip, ImGuiWindowFlags.None);
+
+                        if (character.BlacklistNote != null)
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
+                            ImGui.Text("Note:");
+                            ImGui.PopStyleColor();
+                            ImGui.SameLine();
+                            ImGui.Text(character.BlacklistNote);
+                        }
+
+                        if (character.oldNames != null)
+                        {
+                            ImU8String text = String.Join("\n", character.oldNames);
+                            ImGui.PushStyleColor(ImGuiCol.Text, 0x80FFFFFF);
+                            if (character.oldNames.Count > 1)
+                            {
+                                ImGui.Text("Previous names from newest to oldest:");
+                            }
+                            else
+                            {
+                                ImGui.Text("Also known as");
+                                ImGui.SameLine();
+                            }
+                            ImGui.PopStyleColor();
+
+                            ImGui.Text(text.Span);
+                            text.Recycle();
+                        }
+
+
+                        ImGui.EndTooltip();
+                    }
+
+                    if (character.Name != "Empty" && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
+                    {
+                        ImGui.SetClipboardText(character.Name);
+
+                        Plugin.NotificationManager.AddNotification(new Dalamud.Interface.ImGuiNotification.Notification
+                        {
+                            Type = Dalamud.Interface.ImGuiNotification.NotificationType.Info,
+                            Content = $"Copied \"{character.Name}\" to the clipboard",
+                        });
                     }
                 }
             }
